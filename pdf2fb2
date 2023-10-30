@@ -1,0 +1,8 @@
+#!/bin/sh
+
+BASEDIR=$(dirname "$0")
+
+echo "$BASEDIR"
+
+cd $BASEDIR/src
+python pdf2fb2.py
