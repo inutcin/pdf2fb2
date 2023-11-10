@@ -1,48 +1,37 @@
+import sys
+
+sys.path.append("./lib")
+
 import os
+import conf
+import shell 
 
-start_page = 29;
-end_page = 31;
+start_page = int(conf.settings.get('start_page'))
+end_page = int(conf.settings.get('end_page'))
 
-settings = {}
-settings.update({"convertDensity": 600})
-settings.update({"start_page": 29})
-settings.update({"end_page": 31})
-settings.update({"input_file": "input.pdf"})
-settings.update({"languages": "rus+eng"})
-
-
-input_file = os.path.abspath("../volume/" + str(settings.get("input_file")));
-jpeg_dir = os.path.abspath("../volume/jpg")
-txt_dir = os.path.abspath("../volume/txt")
-start_page = int(settings.get('start_page'))
-end_page = int(settings.get('end_page'))
-
-for dirname in [jpeg_dir, txt_dir]:
+for dirname in [conf.jpeg_dir, conf.txt_dir, conf.box_dir]:
     if os.path.isdir(dirname)!=True:
         os.makedirs(dirname, 0o777)
 
 for i in range(start_page, end_page + 1):
+    print("Page" + str(i) + ":", end="\n---------\n")
     # Convert PDF page to JPEG image
-    current_jpg = jpeg_dir + "/" + str(i) + ".jpg"
-    convertCommand = [] 
-    convertCommand.append("convert")
-    convertCommand.append("-verbose")
-    convertCommand.append("-density " + str(settings.get("convertDensity")))
-    convertCommand.append(input_file + "["+str(i)+"]")
-    convertCommand.append(current_jpg);
-    os.system(' '.join(convertCommand))
+    print ("    Converting to jpg", end=' ... ')
+    current_jpg = shell.pdf2jpg(page = i)
+    print("[Done]")
 
     #recognize single page and save it as text file
-    current_txt = txt_dir + "/" + str(i) + ".txt"
-    recognizeCommand = []
-    recognizeCommand.append("tesseract")
-    recognizeCommand.append(current_jpg)
-    recognizeCommand.append(current_txt)
-    recognizeCommand.append("-l "+ str(settings.get("languages")))
-    os.system(' '.join(recognizeCommand))
+    print("    Recognizing", end=" ... ")
+    current_txt = shell.jpg2txt(current_jpg, page = i)
+    print("[Done]")
+
+    #save recognized boxes for sympols
+    print("    Boxing", end=" ... ")
+    current_box = shell.jpj2boxes(current_jpg, page = i)
+    print("[Done]")
 
     # remove temporary files
-    for remfile in [current_jpg]:
-        os.remove(current_jpg)
+    # for remfile in [current_jpg]:
+    #     os.remove(current_jpg)
         
 
